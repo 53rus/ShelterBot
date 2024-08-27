@@ -2,6 +2,7 @@ package skypro_ShelterBot.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import skypro_ShelterBot.exception.AnimalNotFoundException;
 import skypro_ShelterBot.model.Animal;
@@ -20,15 +21,31 @@ public class AnimalService {
         this.animalRepository = animalRepository;
     }
 
+    /**
+     * Создание питомца в БД
+     * <br>используется метод {@link JpaRepository#save(Object)}
+     * @param animal
+     */
     public void addAnimal(Animal animal) {
         animal.setId(null);
         animalRepository.save(animal);
     }
 
+    /**
+     * Показать всех питомцев приюта
+     * <br>используется метод {@link JpaRepository#findAll()}
+     * * @return {@link Collection<Animal>}
+     */
     public Collection<Animal> findAll() {
         return animalRepository.findAll();
     }
 
+    /**
+     * Найти питомца по id
+     * <br>используется метод {@link JpaRepository#findById(Object)}
+     * @param id
+     * @return animal
+     */
     public Animal findById(Long id) {
         Optional<Animal> animal = animalRepository.findById(id);
         if (animal.isPresent()) {
@@ -38,6 +55,12 @@ public class AnimalService {
         throw new AnimalNotFoundException();
     }
 
+    /**
+     * Внесение изменений в запись animal
+     * <br>используется метод {@link JpaRepository#findById(Object),JpaRepository#save(Object)}
+     * @param animal
+     * @return animal
+     */
     public Animal editAnimal(Animal animal) {
         Optional<Animal> editAnimal = animalRepository.findById(animal.getId());
         if (editAnimal.isPresent()) {
@@ -46,6 +69,13 @@ public class AnimalService {
         logger.error("Animal animal {} not found", animal);
         throw new AnimalNotFoundException();
     }
+
+    /**
+     * Удаление animal из БД
+     * <br>используется метод {@link JpaRepository#findById(Object),JpaRepository#delete(Object)}
+     * @param id
+     * @return animal
+     */
 
     public Animal deletAnimal(Long id) {
         Optional<Animal> animal = animalRepository.findById(id);

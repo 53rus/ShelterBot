@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import skypro_ShelterBot.enums.ColorPet;
 import skypro_ShelterBot.enums.GenderPet;
 import skypro_ShelterBot.enums.ShelterType;
+import skypro_ShelterBot.enums.UserType;
 
 import java.util.Objects;
 
@@ -22,6 +23,9 @@ public class Animal {
     private ColorPet colorPet;
     @Enumerated(EnumType.STRING)
     private ShelterType shelterType;
+    @ManyToOne
+    @JoinColumn(name = "user_chatId")
+    private User user;
 
     public Animal(Long id, String namePet, double age, GenderPet genderPet, ColorPet colorPet, ShelterType shelterType) {
         this.id = id;

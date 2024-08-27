@@ -70,7 +70,7 @@ public class UserService {
 
 
     /**
-     * Внесение изменеией в существующего user
+     * Внесение изменений в существующего user
      * <br>используются методы {@link UserRepository#findByChatId(Long)}, {@link JpaRepository#save(Object)}
      * @param user
      * @return user

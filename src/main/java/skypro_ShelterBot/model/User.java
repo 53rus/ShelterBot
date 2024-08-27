@@ -1,10 +1,12 @@
 package skypro_ShelterBot.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import skypro_ShelterBot.enums.UserType;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Objects;
 
 @Entity
@@ -20,6 +22,9 @@ public class User {
     private LocalDateTime registrationDate;
     @Enumerated(EnumType.STRING)
     private UserType userType;
+    @OneToMany(mappedBy = "user")
+    @JsonIgnore
+    private Collection<Animal> animals;
 
     public User(Long chatId, String firstName, String lastName, String phoneNumber, String address, LocalDateTime registrationDate, UserType userType) {
         this.chatId = chatId;
