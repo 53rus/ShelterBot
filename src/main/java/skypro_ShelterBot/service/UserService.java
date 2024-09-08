@@ -11,6 +11,7 @@ import skypro_ShelterBot.model.User;
 import skypro_ShelterBot.repository.UserRepository;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import static skypro_ShelterBot.enums.UserType.GUEST;
@@ -30,8 +31,8 @@ public class UserService {
 
     /**
      * Создание клиента в БД
-     * @param user
-     * <br>используется метод {@link JpaRepository#save(Object)}
+     *
+     * @param user <br>используется метод {@link JpaRepository#save(Object)}
      * @throws UserWithThisChatIdAlreadyExistException, выбрасывается когда пользователь с таким chatId уже существует в БД
      */
     public void addUser(User user) {
@@ -47,6 +48,7 @@ public class UserService {
     /**
      * Показать всех клиентов приюта
      * <br>используется метод {@link JpaRepository#findAll()}
+     *
      * @return Collection Users
      */
     public Collection<User> findAll() {
@@ -55,7 +57,8 @@ public class UserService {
 
     /**
      * Поиск в user в БД
-     *<br>используется метод {@link UserRepository#findByChatId(Long)}
+     * <br>используется метод {@link UserRepository#findByChatId(Long)}
+     *
      * @param chatId
      * @return user
      */
@@ -72,6 +75,7 @@ public class UserService {
     /**
      * Внесение изменений в существующего user
      * <br>используются методы {@link UserRepository#findByChatId(Long)}, {@link JpaRepository#save(Object)}
+     *
      * @param user
      * @return user
      */
@@ -86,7 +90,8 @@ public class UserService {
 
     /**
      * Удаление user
-     *  <br>используется метод {@link JpaRepository#delete(Object)}
+     * <br>используется метод {@link JpaRepository#delete(Object)}
+     *
      * @param chatId
      * @return deleteUser.get()
      */
@@ -103,6 +108,7 @@ public class UserService {
     /**
      * Создание user со значением поля userType = GUEST
      * <br>используются методы {@link UserRepository#findByChatId(Long)}, {@link JpaRepository#save(Object)}
+     *
      * @param update
      */
     public void autoCreateUserGuest(Update update) {
@@ -110,16 +116,15 @@ public class UserService {
         Optional<User> user = userRepository.findByChatId(chatId);
         if (user.isEmpty()) {
             User guest = new User();
-            guest.setChatId(update.message().chat().id());
-            guest.setFirstName(update.message().chat().firstName());
-            guest.setLastName(update.message().chat().lastName());
+            guest.setChatId(update.message().contact().userId());
+            guest.setFirstName(update.message().contact().firstName());
+            guest.setLastName(update.message().contact().lastName());
             guest.setUserType(GUEST);
             guest.setAddress(null);
-            guest.setPhoneNumber(null);
+            guest.setPhoneNumber(update.message().contact().phoneNumber());
 
             userRepository.save(guest);
         }
     }
-
 
 }

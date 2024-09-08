@@ -1,18 +1,28 @@
 package skypro_ShelterBot.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.extensions.Extension;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import skypro_ShelterBot.model.Animal;
+import skypro_ShelterBot.model.AnimalPhoto;
 import skypro_ShelterBot.model.User;
+import skypro_ShelterBot.service.AnimalPhotoService;
 import skypro_ShelterBot.service.AnimalService;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collection;
 
 @RestController
@@ -20,9 +30,11 @@ import java.util.Collection;
 public class AnimalController {
 
     private final AnimalService animalService;
+    private final AnimalPhotoService animalPhotoService;
 
-    public AnimalController(AnimalService animalService) {
+    public AnimalController(AnimalService animalService, AnimalPhotoService animalPhotoService) {
         this.animalService = animalService;
+        this.animalPhotoService = animalPhotoService;
     }
 
     @Operation(
@@ -151,4 +163,40 @@ public class AnimalController {
         Animal animal = animalService.deletAnimal(id);
         return ResponseEntity.ok(animal);
     }
+
+    @Operation(
+            summary = "Присвоить фото питомцу",
+            description = "Выберите питомца по Id",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Выберите фото",
+                    extensions = {@Extension(
+                            properties = {})}
+            )
+
+    )
+    @PostMapping(value = "{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> uploadCover(@PathVariable Long id, @RequestParam MultipartFile photo) throws IOException {
+        if (photo.getSize() >= 1200 * 628) {
+            return ResponseEntity.badRequest().body("File is too big");
+        }
+        animalPhotoService.uploadPhoto(id, photo);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping(value = "{id}/photo")
+    public void downloadCover(@PathVariable Long id, HttpServletResponse response) throws IOException {
+        AnimalPhoto photo = animalPhotoService.findAnimalPhoto(id);
+
+        Path path = Path.of(photo.getFilePath());
+
+        try (InputStream is = Files.newInputStream(path);
+             OutputStream os = response.getOutputStream();) {
+            response.setStatus(200);
+            response.setContentType(photo.getMediaType());
+            response.setContentLength((int) photo.getFileSize());
+            is.transferTo(os);
+        }
+    }
+
+
 }

@@ -86,4 +86,5 @@ public class AnimalService {
         logger.error("Animal to be removed with id {} not found", id);
         throw new AnimalNotFoundException();
     }
+
 }
