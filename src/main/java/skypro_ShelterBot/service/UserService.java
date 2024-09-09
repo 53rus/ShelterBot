@@ -35,13 +35,13 @@ public class UserService {
      * @param user <br>используется метод {@link JpaRepository#save(Object)}
      * @throws UserWithThisChatIdAlreadyExistException, выбрасывается когда пользователь с таким chatId уже существует в БД
      */
-    public void addUser(User user) {
+    public User addUser(User user) {
         Optional<User> saveUser = userRepository.findByChatId(user.getChatId());
         if (saveUser.isPresent()) {
             throw new UserWithThisChatIdAlreadyExistException();
         }
         user.setUserType(REGISTERED);
-        userRepository.save(user);
+        return userRepository.save(user);
     }
 
 

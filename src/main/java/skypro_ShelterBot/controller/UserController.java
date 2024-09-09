@@ -41,9 +41,12 @@ public class UserController {
 
     )
     @PostMapping
-    public ResponseEntity<Void> addUser(@RequestBody User user) {
-        userService.addUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public ResponseEntity<User> addUser(@RequestBody User user) {
+       User saveUser = userService.addUser(user);
+        if (saveUser == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        return ResponseEntity.ok(user);
     }
 
     @Operation(
@@ -89,9 +92,12 @@ public class UserController {
             },
             tags = "Клиенты"
     )
-    @GetMapping("/chatId")
-    public ResponseEntity<User> getUserByChatId(@RequestParam Long chatId) {
+    @GetMapping("{chatId}")
+    public ResponseEntity<User> getUserByChatId(@PathVariable Long chatId) {
         User user = userService.findByChatId(chatId);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
         return ResponseEntity.ok(user);
     }
 

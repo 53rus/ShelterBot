@@ -83,8 +83,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                         "Адрес: Собачий р-н, Собачья д, Проспект Лающего пса, дом 11 \n" +
                         "Телефон приюта 8 (821) 321 3321 \n" +
                         "Время работы: 9-21 без перерыва на обед, без выходных \n");
-            } else if (messageText.equals("/test")) {
-                userService.findAll();
 
             } else sendMassage(chatId, "Для работы с ботом воспользуйтесь меню, либо введите команду /help");
 

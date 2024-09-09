@@ -56,9 +56,12 @@ public class AnimalController {
 
     )
     @PostMapping
-    public ResponseEntity<Void> addAnimal(@RequestBody Animal animal) {
-        animalService.addAnimal(animal);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public ResponseEntity<Animal> addAnimal(@RequestBody Animal animal) {
+        Animal saveAnimal = animalService.addAnimal(animal);
+        if (saveAnimal == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        return ResponseEntity.ok(animal);
     }
 
     @Operation(
@@ -104,9 +107,12 @@ public class AnimalController {
             },
             tags = "Питомцы"
     )
-    @GetMapping("/id")
-    public ResponseEntity<Animal> getAnimalById(@RequestParam Long id) {
+    @GetMapping("{id}")
+    public ResponseEntity<Animal> getAnimalById(@PathVariable Long id) {
         Animal animal = animalService.findById(id);
+        if (animal == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
         return ResponseEntity.ok(animal);
     }
 

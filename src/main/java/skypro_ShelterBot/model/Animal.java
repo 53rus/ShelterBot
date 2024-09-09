@@ -27,13 +27,15 @@ public class Animal {
     @JoinColumn(name = "user_chatId")
     private User user;
 
-    public Animal(Long id, String namePet, double age, GenderPet genderPet, ColorPet colorPet, ShelterType shelterType) {
+
+    public Animal(Long id, String namePet, double age, GenderPet genderPet, ColorPet colorPet, ShelterType shelterType, User user) {
         this.id = id;
         this.namePet = namePet;
         this.age = age;
         this.genderPet = genderPet;
         this.colorPet = colorPet;
         this.shelterType = shelterType;
+        this.user = user;
     }
 
     public Animal() {
@@ -87,6 +89,13 @@ public class Animal {
         this.shelterType = shelterType;
     }
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 
     @Override
     public boolean equals(Object o) {

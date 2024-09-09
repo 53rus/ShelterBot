@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import skypro_ShelterBot.exception.AnimalNotFoundException;
 import skypro_ShelterBot.model.Animal;
 import skypro_ShelterBot.repository.AnimalRepository;
+import skypro_ShelterBot.repository.UserRepository;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -14,11 +15,13 @@ import java.util.Optional;
 public class AnimalService {
 
     private final AnimalRepository animalRepository;
+    private final UserRepository userRepository;
 
     Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    public AnimalService(AnimalRepository animalRepository) {
+    public AnimalService(AnimalRepository animalRepository, UserRepository userRepository) {
         this.animalRepository = animalRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -26,9 +29,9 @@ public class AnimalService {
      * <br>используется метод {@link JpaRepository#save(Object)}
      * @param animal
      */
-    public void addAnimal(Animal animal) {
+    public Animal addAnimal(Animal animal) {
         animal.setId(null);
-        animalRepository.save(animal);
+        return animalRepository.save(animal);
     }
 
     /**

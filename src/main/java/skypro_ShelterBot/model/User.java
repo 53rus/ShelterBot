@@ -22,6 +22,7 @@ public class User {
     private LocalDateTime registrationDate;
     @Enumerated(EnumType.STRING)
     private UserType userType;
+
     @OneToMany(mappedBy = "user")
     @JsonIgnore
     private Collection<Animal> animals;
@@ -87,7 +88,7 @@ public class User {
         this.registrationDate = registrationDate;
     }
 
-    public UserType getUserType() {
+    public UserType getUserType(UserType userType) {
         return userType;
     }
 
