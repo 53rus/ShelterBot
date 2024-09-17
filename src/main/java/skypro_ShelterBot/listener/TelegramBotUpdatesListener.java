@@ -1,5 +1,6 @@
 package skypro_ShelterBot.listener;
 
+import ch.qos.logback.core.util.FixedDelay;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.TelegramException;
 import com.pengrad.telegrambot.UpdatesListener;
@@ -8,11 +9,14 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import skypro_ShelterBot.model.User;
 import skypro_ShelterBot.service.AnimalService;
 import skypro_ShelterBot.service.Sender;
 import skypro_ShelterBot.service.UserService;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -57,10 +61,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                         Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
                         Matcher matcher = pattern.matcher(messageText.toLowerCase());
 
-                        if (matcher.matches()) {
-                            userService.saveReport(matcher, chatId);
-                            logger.info("Отчет сохранен");
-                        }
 
                         switch (messageText) {
                             case "/start" -> {
@@ -77,7 +77,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                                         "/cat_shelter_info - Получить информацию по приюту для кошек \n\n" +
                                         "/dog_shelter_info - Получить информацию по приюту для собак \n\n" +
                                         "/volunteer_info - Получить информацию о волонтере \n\n " +
-                                        "/send_pet_report - Отправить отчет о питомце \n\n "+
+                                        "/send_pet_report - Отправить отчет о питомце \n\n " +
                                         "/show_my_pets - Посмотреть питомцев на испытательном сроке");
                                 break;
                             }
@@ -118,7 +118,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                             }
                             case "/send_pet_report" -> {
                                 sender.sendMassage(chatId, "Если Вы являетесь опекуном и хотите отправить ежедневный отчет о питомце,\n\n" +
-                                        "Вам необходимо начать свое сообщение со слова отчет" );
+                                        "Вам необходимо начать свое сообщение со слова отчет");
 
                                 break;
                             }
@@ -126,20 +126,17 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                                 animalService.showMyPets(update);
                                 break;
                             }
-                            default ->
+                            default -> {
+                                if (matcher.matches()) {
+                                    userService.saveReport(matcher, chatId);
+                                    logger.info("Отчет сохранен");
+                                } else
                                     sender.sendMassage(chatId, "Для работы с ботом воспользуйтесь меню, либо введите команду /help");
+                            }
                         }
-
                     }
                 }
         );
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
-
-
-//    private void sendMassage(Long chatId, String answer) {
-//        SendMessage message = new SendMessage(chatId, answer);
-//        SendResponse response = telegramBot.execute(message);
-//    }
-
 }
