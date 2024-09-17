@@ -17,6 +17,7 @@ public class Animal {
     private Long id;
     private String namePet;
     private double age;
+    private Integer probation;
     @Enumerated(EnumType.STRING)
     private GenderPet genderPet;
     @Enumerated(EnumType.STRING)
@@ -28,7 +29,7 @@ public class Animal {
     private User user;
 
 
-    public Animal(Long id, String namePet, double age, GenderPet genderPet, ColorPet colorPet, ShelterType shelterType, User user) {
+    public Animal(Long id, String namePet, double age, GenderPet genderPet, ColorPet colorPet, ShelterType shelterType, User user, Integer probation) {
         this.id = id;
         this.namePet = namePet;
         this.age = age;
@@ -36,6 +37,7 @@ public class Animal {
         this.colorPet = colorPet;
         this.shelterType = shelterType;
         this.user = user;
+        this.probation = probation;
     }
 
     public Animal() {
@@ -95,6 +97,14 @@ public class Animal {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Integer getProbation() {
+        return probation;
+    }
+
+    public void setProbation(Integer probation) {
+        this.probation = probation;
     }
 
     @Override

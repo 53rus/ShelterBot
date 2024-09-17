@@ -9,10 +9,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import skypro_ShelterBot.model.PetReport;
 import skypro_ShelterBot.model.User;
 import skypro_ShelterBot.service.UserService;
 
 import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping("user")
@@ -112,9 +114,10 @@ public class UserController {
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = User.class))
-            )
-
+            ),
+            tags = "Клиенты"
     )
+
     @PutMapping
     public ResponseEntity<User> editUser(@RequestBody User user) {
         User editUser = userService.editUser(user);
@@ -151,5 +154,29 @@ public class UserController {
     public ResponseEntity<User> deleteUser(@PathVariable Long chatId) {
         User user = userService.deleteUser(chatId);
         return ResponseEntity.ok(user);
+    }
+
+    @Operation(
+            summary = "Показать все отчеты по клиенту",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Запрос выполнен успешно",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    array = @ArraySchema(schema = @Schema(implementation = User.class))
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Отчеты по клиенту не найдены"
+                    )
+            },
+            tags = "Отчеты"
+    )
+    @GetMapping("/report/{chatId}")
+    public ResponseEntity<Collection<PetReport>>findAllReportsByUserChatId(@PathVariable Long chatId) {
+        List<PetReport> reports = userService.findAllReportsByUserChatId(chatId);
+        return ResponseEntity.ok(reports);
     }
 }

@@ -88,7 +88,7 @@ public class User {
         this.registrationDate = registrationDate;
     }
 
-    public UserType getUserType(UserType userType) {
+    public UserType getUserType() {
         return userType;
     }
 

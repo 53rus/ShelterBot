@@ -123,7 +123,7 @@ public class UserControllerTest {
         user.setLastName("Popovich");
         user.setPhoneNumber("555");
         user.setAddress("Land");
-        user.getUserType(GUEST);
+        user.getUserType();
         return user;
     }
 
@@ -134,7 +134,7 @@ public class UserControllerTest {
         user.setLastName("Trinkin");
         user.setPhoneNumber("666");
         user.setAddress("Hop");
-        user.getUserType(REGISTERED);
+        user.getUserType();
         return user;
     }
 }

@@ -104,7 +104,7 @@ public class UserServiceTest {
         user.setLastName("Popovich");
         user.setPhoneNumber("555");
         user.setAddress("Land");
-        user.getUserType(GUEST);
+        user.getUserType();
         return user;
     }
 

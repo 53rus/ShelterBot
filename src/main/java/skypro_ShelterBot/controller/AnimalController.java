@@ -1,6 +1,8 @@
 package skypro_ShelterBot.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.extensions.Extension;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -12,11 +14,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import skypro_ShelterBot.exception.AnimalAlreadyHasOwnerException;
 import skypro_ShelterBot.model.Animal;
 import skypro_ShelterBot.model.AnimalPhoto;
 import skypro_ShelterBot.model.User;
 import skypro_ShelterBot.service.AnimalPhotoService;
 import skypro_ShelterBot.service.AnimalService;
+import skypro_ShelterBot.service.UserService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,10 +34,12 @@ import java.util.Collection;
 public class AnimalController {
 
     private final AnimalService animalService;
+    private final UserService userService;
     private final AnimalPhotoService animalPhotoService;
 
-    public AnimalController(AnimalService animalService, AnimalPhotoService animalPhotoService) {
+    public AnimalController(AnimalService animalService, UserService userService, AnimalPhotoService animalPhotoService) {
         this.animalService = animalService;
+        this.userService = userService;
         this.animalPhotoService = animalPhotoService;
     }
 
@@ -78,6 +84,7 @@ public class AnimalController {
             },
             tags = "Питомцы"
     )
+
     @GetMapping
     public ResponseEntity<Collection<Animal>> getAllAnimal() {
         Collection<Animal> animal = animalService.findAll();
@@ -107,6 +114,7 @@ public class AnimalController {
             },
             tags = "Питомцы"
     )
+
     @GetMapping("{id}")
     public ResponseEntity<Animal> getAnimalById(@PathVariable Long id) {
         Animal animal = animalService.findById(id);
@@ -129,9 +137,10 @@ public class AnimalController {
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = Animal.class))
-            )
-
+            ),
+            tags = "Питомцы"
     )
+
     @PutMapping
     public ResponseEntity<Animal> editAnimal(@RequestBody Animal animal) {
         Animal editAnimal = animalService.editAnimal(animal);
@@ -139,6 +148,43 @@ public class AnimalController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
         return ResponseEntity.ok(editAnimal);
+    }
+
+    @Operation(summary = "Назначить опекуна питомцу",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Опекун назначен",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    array = @ArraySchema(schema = @Schema(implementation = Animal.class))
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "409",
+                            description = "Питомец уже нашел своего хозяина"
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Пользователь не прошел полную регистрацию"
+                    )
+            },
+            tags = "Питомцы"
+    )
+
+    @PutMapping(path = "/animal/add-adopter")
+    public ResponseEntity<Animal> assignAPetToAnAdopter(@Parameter(description = "ChatId усыновителя")
+                                                        @RequestParam Long chatId,
+                                                        @Parameter(description = "ID питомца")
+                                                        @RequestParam Long id) {
+        Animal animal = animalService.findById(id);
+        User user = userService.findByChatId(chatId);
+
+        if (user != null && animal != null) {
+            animalService.addAdopter(user, animal);
+        }
+
+        return ResponseEntity.ok(animal);
     }
 
     @Operation(
@@ -164,8 +210,10 @@ public class AnimalController {
             },
             tags = "Питомцы"
     )
+
     @DeleteMapping("{id}")
-    public ResponseEntity<Animal> deleteAnimal(@PathVariable Long id) {
+    public ResponseEntity<Animal> deleteAnimal(@Parameter(description = "Id питомца")
+                                               @PathVariable Long id) {
         Animal animal = animalService.deletAnimal(id);
         return ResponseEntity.ok(animal);
     }
@@ -177,9 +225,10 @@ public class AnimalController {
                     description = "Выберите фото",
                     extensions = {@Extension(
                             properties = {})}
-            )
-
+            ),
+            tags = "Питомцы"
     )
+
     @PostMapping(value = "{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> uploadCover(@PathVariable Long id, @RequestParam MultipartFile photo) throws IOException {
         if (photo.getSize() >= 1200 * 628) {
@@ -188,6 +237,16 @@ public class AnimalController {
         animalPhotoService.uploadPhoto(id, photo);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(
+            summary = "Посмотреть фото по ID питомца",
+            description = "Выберите питомца по Id",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    extensions = {@Extension(
+                            properties = {})}
+            ),
+            tags = "Питомцы"
+    )
 
     @GetMapping(value = "{id}/photo")
     public void downloadCover(@PathVariable Long id, HttpServletResponse response) throws IOException {
@@ -203,6 +262,4 @@ public class AnimalController {
             is.transferTo(os);
         }
     }
-
-
 }
