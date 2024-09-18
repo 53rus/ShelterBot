@@ -16,11 +16,16 @@ public class PetReport {
     @CreationTimestamp
     private LocalDateTime dateTime;
 
-    public PetReport(Long id, Long chatId, String messageText, LocalDateTime dateTime) {
+    @ManyToOne
+    @JoinColumn(name = "animal_id")
+    private Animal animal;
+
+    public PetReport(Long id, Long chatId, String messageText, LocalDateTime dateTime, Animal animal) {
         this.id = id;
         this.chatId = chatId;
         this.messageText = messageText;
         this.dateTime = dateTime;
+        this.animal = animal;
     }
 
     public PetReport() {
@@ -56,6 +61,14 @@ public class PetReport {
 
     public void setDateTime(LocalDateTime dateTime) {
         this.dateTime = dateTime;
+    }
+
+    public Animal getAnimal() {
+        return animal;
+    }
+
+    public void setAnimal(Animal animal) {
+        this.animal = animal;
     }
 
     @Override

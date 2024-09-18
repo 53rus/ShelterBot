@@ -18,6 +18,8 @@ import skypro_ShelterBot.repository.AnimalRepository;
 import skypro_ShelterBot.repository.PetReportRepository;
 import skypro_ShelterBot.repository.UserRepository;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -33,14 +35,16 @@ public class UserService {
     private final PetReportRepository petReportRepository;
     private final Sender sender;
     private final AnimalRepository animalRepository;
+    private final AnimalService animalService;
 
     Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    public UserService(UserRepository userRepository, PetReportRepository petReportRepository, Sender sender, AnimalRepository animalRepository) {
+    public UserService(UserRepository userRepository, PetReportRepository petReportRepository, Sender sender, AnimalRepository animalRepository, AnimalService animalService) {
         this.userRepository = userRepository;
         this.petReportRepository = petReportRepository;
         this.sender = sender;
         this.animalRepository = animalRepository;
+        this.animalService = animalService;
     }
 
 
@@ -145,28 +149,62 @@ public class UserService {
 
     /**
      * Метод по сохранению пользовательского отчета в БД
+     *<br>используются методы
+     * {@link AnimalRepository#findAllByUserChatId(Long)},
+     * {@link AnimalRepository#save(Object)},
+     * {@link PetReportRepository#save(Object)}
+     *
+     *
      * @param matcher
      * @param chatId
      */
 
     public void saveReport(Matcher matcher, Long chatId) {
         PetReport petReport = new PetReport();
+
         User user = findByChatId(chatId);
-        List<Animal> animals = animalRepository.findAllByUserChatId(user.getChatId());
-        String text = matcher.group(2);
-        petReport.setMessageText(text);
-        petReport.setChatId(chatId);
+
+        List<Animal> animals = animalRepository.findAllByUserChatId(chatId);
+
+        String text = matcher.group(6);
+        long animalId = Long.parseLong(matcher.group(4));
 
         if (user.getUserType() == ADOPTER && !animals.isEmpty()) {
-            petReportRepository.save(petReport);
+            animals.forEach(animal -> {
+                if (animal.getId() == animalId && animal.getProbation() == null) {
+                    sender.sendMassage(chatId, "У питомца уже закончился испытательный срок");
+                } else if (animal.getId() == animalId && animal.getProbation() != null) {
+                    petReport.setMessageText(text);
+                    petReport.setChatId(chatId);
+                    petReport.setAnimal(animal);
+                    petReportRepository.save(petReport);
+                    logger.info("Отчет сохранен");
+
+                    animal.setProbation(animal.getProbation() - 1);
+                    animalRepository.save(animal);
+                    logger.info("Срок опекунства изменен {}", animal.getProbation());
+                }
+                if (animal.getProbation() == 0) {
+                    animal.setProbation(null);
+                    logger.info("Срок опекунства закончился {}", animal.getProbation());
+                    sender.sendMassage(chatId, "Поздравляем, испытательный срок в роли усыновителя для питомца " + animal.getNamePet() + " закончился");
+                    animalRepository.save(animal);
+
+                }
+            });
             sender.sendMassage(chatId, "Отчет доставлен");
         } else {
             sender.sendMassage(chatId, "У Вас нет питомцев для отчетности");
         }
     }
 
+    /**
+     * Метод по выводу доставленных пользователя отчетов
+     * * @param chatId
+     * @return reports (список отчетов)
+     */
     public List<PetReport> findAllReportsByUserChatId(Long chatId) {
-        List<PetReport> reports= petReportRepository.findAllByChatId(chatId);
+        List<PetReport> reports = petReportRepository.findAllByChatId(chatId);
         if (reports.isEmpty()) {
             logger.info("Reports not found from user by ChatId {}", chatId);
             throw new ReportsNotFoundException();

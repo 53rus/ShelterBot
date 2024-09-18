@@ -27,7 +27,8 @@ public class User {
     @JsonIgnore
     private Collection<Animal> animals;
 
-    public User(Long chatId, String firstName, String lastName, String phoneNumber, String address, LocalDateTime registrationDate, UserType userType) {
+
+    public User(Long chatId, String firstName, String lastName, String phoneNumber, String address, LocalDateTime registrationDate, UserType userType, Collection<Animal> animals) {
         this.chatId = chatId;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -35,6 +36,7 @@ public class User {
         this.address = address;
         this.registrationDate = registrationDate;
         this.userType = userType;
+        this.animals = animals;
     }
 
     public User() {
@@ -94,6 +96,14 @@ public class User {
 
     public void setUserType(UserType userType) {
         this.userType = userType;
+    }
+
+    public Collection<Animal> getAnimals() {
+        return animals;
+    }
+
+    public void setAnimals(Collection<Animal> animals) {
+        this.animals = animals;
     }
 
     @Override

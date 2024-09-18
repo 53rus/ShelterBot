@@ -28,7 +28,7 @@ public class AnimalService {
     private final UserRepository userRepository;
     private final Sender sender;
 
-    Logger logger = LoggerFactory.getLogger(UserService.class);
+    Logger logger = LoggerFactory.getLogger(Animal.class);
 
     public AnimalService(AnimalRepository animalRepository, UserRepository userRepository, Sender sender) {
         this.animalRepository = animalRepository;
@@ -44,6 +44,7 @@ public class AnimalService {
      */
     public Animal addAnimal(Animal animal) {
         animal.setId(null);
+        animal.setProbation(null);
         return animalRepository.save(animal);
     }
 
@@ -135,6 +136,8 @@ public class AnimalService {
         animalRepository.save(animal);
         user.setUserType(UserType.ADOPTER);
         userRepository.save(user);
+
+        logger.info("The user chatID {} has successfully completed the pet ID {} adoption procedure ", user.getChatId(), animal.getId());
 
         if (animal.getShelterType() == ShelterType.CAT_SHELTER) {
             sender.sendMassage(user.getChatId(), ADOPTER_CAT + animal.getNamePet() + WISHES);

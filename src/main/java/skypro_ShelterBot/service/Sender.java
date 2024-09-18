@@ -25,20 +25,29 @@ public class Sender {
         this.userRepository = userRepository;
     }
 
+    /**
+     * Отправка сообщений в тг
+     * @param chatId
+     * @param answer
+     */
     public void sendMassage(Long chatId, String answer) {
         SendMessage message = new SendMessage(chatId, answer);
         SendResponse response = telegramBot.execute(message);
     }
 
-
-    @Scheduled(cron = "0 0 9 * * *")
+    /**
+     * Отправка сообщений в тг, напоминаний, о необходимости отправить отчет
+     */
+    @Scheduled(cron = "0 0 10 * * *")
     public void send() {
         List<Animal> animals = animalRepository.findAll()
                 .stream()
                 .filter(animal -> animal.getProbation()!=null)
                 .toList();
         animals.forEach(animal -> {
-                sendMassage(animal.getUser().getChatId(), "Незабываем отправить отчет о питомце  " + animal.getNamePet() );
+                sendMassage(animal.getUser().getChatId(), "Незабываем отправить отчет о питомце  "
+                        + animal.getNamePet() +
+                        "\nКак отправить отчет смотрите тут /send_pet_report");
         });
     }
 }
