@@ -18,9 +18,12 @@ import skypro_ShelterBot.repository.AnimalRepository;
 import skypro_ShelterBot.repository.PetReportRepository;
 import skypro_ShelterBot.repository.UserRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -149,58 +152,91 @@ public class UserService {
 
     /**
      * Метод по сохранению пользовательского отчета в БД
-     *<br>используются методы
+     * <br>используются методы
      * {@link AnimalRepository#findAllByUserChatId(Long)},
      * {@link AnimalRepository#save(Object)},
      * {@link PetReportRepository#save(Object)}
-     *
      *
      * @param matcher
      * @param chatId
      */
 
     public void saveReport(Matcher matcher, Long chatId) {
+        LocalDate date = LocalDate.now();
         PetReport petReport = new PetReport();
-
-        User user = findByChatId(chatId);
-
-        List<Animal> animals = animalRepository.findAllByUserChatId(chatId);
 
         String text = matcher.group(6);
         long animalId = Long.parseLong(matcher.group(4));
 
-        if (user.getUserType() == ADOPTER && !animals.isEmpty()) {
-            animals.forEach(animal -> {
-                if (animal.getId() == animalId && animal.getProbation() == null) {
-                    sender.sendMassage(chatId, "У питомца уже закончился испытательный срок");
-                } else if (animal.getId() == animalId && animal.getProbation() != null) {
-                    petReport.setMessageText(text);
-                    petReport.setChatId(chatId);
-                    petReport.setAnimal(animal);
-                    petReportRepository.save(petReport);
-                    logger.info("Отчет сохранен");
+        List<Animal> animals = animalRepository.findAllByUserChatId(chatId)
+                .stream()
+                .filter(animal -> animal.getId().equals(animalId) && animal.getProbation() != null)
+                .toList();
+        if (animals.isEmpty()) {
+            sender.sendMassage(chatId, "Питомца с ID " + animalId + " на испытательном сроке закрепленном за Вами, не найдено\n\n" +
+                    "ID усыновленных питомцев на испытательном сроке можно посмотреть тут /show_my_pets ");
+        } else {
+            List<PetReport> reports = petReportRepository.findByAnimalId(animalId)
+                    .stream()
+                    .filter(report -> (report.getDateTime().toLocalDate()).equals(date))
+                    .toList();
+            if (!reports.isEmpty()) {
+                sender.sendMassage(chatId, "Отчет по данному питомцу уже отправлялся:  " + date);
+            } else animals.forEach(animal -> {
+                petReport.setMessageText(text);
+                petReport.setChatId(chatId);
+                petReport.setAnimal(animal);
+                petReportRepository.save(petReport);
+                logger.info("Отчет сохранен");
 
-                    animal.setProbation(animal.getProbation() - 1);
-                    animalRepository.save(animal);
-                    logger.info("Срок опекунства изменен {}", animal.getProbation());
-                }
+                animal.setProbation(animal.getProbation() - 1);
+                logger.info("Срок опекунства изменен {}", animal.getProbation());
+                animalRepository.save(animal);
+
                 if (animal.getProbation() == 0) {
                     animal.setProbation(null);
                     logger.info("Срок опекунства закончился {}", animal.getProbation());
                     sender.sendMassage(chatId, "Поздравляем, испытательный срок в роли усыновителя для питомца " + animal.getNamePet() + " закончился");
                     animalRepository.save(animal);
-
                 }
+                sender.sendMassage(chatId, "Отчет доставлен");
             });
-            sender.sendMassage(chatId, "Отчет доставлен");
-        } else {
-            sender.sendMassage(chatId, "У Вас нет питомцев для отчетности");
         }
+
+//        if (reports.isEmpty()) {
+//            if (user.getUserType() == ADOPTER && !animals.isEmpty()) {
+//                animals.forEach(animal -> {
+//                    if (animal.getId() == animalId && animal.getProbation() == null) {
+//                        sender.sendMassage(chatId, "У питомца уже закончился испытательный срок");
+//                    } else if (animal.getId() == animalId && animal.getProbation() != null) {
+//                        petReport.setMessageText(text);
+//                        petReport.setChatId(chatId);
+//                        petReport.setAnimal(animal);
+//                        petReportRepository.save(petReport);
+//                        logger.info("Отчет сохранен");
+//
+//                        animal.setProbation(animal.getProbation() - 1);
+//                        animalRepository.save(animal);
+//                        if (animal.getProbation() == 0) {
+//                            animal.setProbation(null);
+//                            logger.info("Срок опекунства закончился {}", animal.getProbation());
+//                            sender.sendMassage(chatId, "Поздравляем, испытательный срок в роли усыновителя для питомца " + animal.getNamePet() + " закончился");
+//                            animalRepository.save(animal);
+//                        }
+//                        logger.info("Срок опекунства изменен {}", animal.getProbation());
+//                        sender.sendMassage(chatId, "Отчет доставлен");
+//                    }
+//                });
+//            } else {
+//                sender.sendMassage(chatId, "У Вас нет питомцев для отчетности");
+//            }
+//        } else sender.sendMassage(chatId, "Отчет по данному питомцу сегодня уже отправлялся");
     }
 
     /**
      * Метод по выводу доставленных пользователя отчетов
      * * @param chatId
+     *
      * @return reports (список отчетов)
      */
     public List<PetReport> findAllReportsByUserChatId(Long chatId) {

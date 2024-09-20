@@ -178,7 +178,8 @@ public class AnimalService {
     public void dogsForAdoption(Update update) {
         List<Animal> dogs = animalRepository.findByShelterType(ShelterType.DOG_SHELTER)
                 .stream()
-                .filter(dog -> dog.getUser() == null).toList();
+                .filter(dog -> dog.getUser() == null)
+                .toList();
 
         if (dogs.isEmpty()) {
             sender.sendMassage(update.message().chat().id(), "В данный момент песиков ищущих хозяина нет");

@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface PetReportRepository extends JpaRepository<PetReport,Long> {
     List<PetReport> findAllByChatId(Long chatId);
+
+    List<PetReport> findByAnimalId(long animalId);
 }

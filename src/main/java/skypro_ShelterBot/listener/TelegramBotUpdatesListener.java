@@ -51,6 +51,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     String regex = "((report)(\\s)(\\d+)(\\s)(.++))";
 
                     if (messageText != null) {
+                        userService.autoCreateUserGuest(update);
                         logger.info("Processing update: {}", update.message().chat().id());
 
                         Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
@@ -61,7 +62,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
                         switch (messageText) {
                             case "/start" -> {
-                                userService.autoCreateUserGuest(update);
                                 sender.sendMassage(chatId, "Здравствуйте  , " + update.message().chat().firstName() + " , добро пожаловать в телеграм чат приюта домашних животных\n\n" +
                                         "Все пользователи проходят автоматическую регистрацию в базе приюта в роли Гостя");
                                 break;
