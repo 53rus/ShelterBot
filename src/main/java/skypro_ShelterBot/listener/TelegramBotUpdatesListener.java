@@ -51,7 +51,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     String regex = "((report)(\\s)(\\d+)(\\s)(.++))";
 
                     if (messageText != null) {
-                        userService.autoCreateUserGuest(update);
                         logger.info("Processing update: {}", update.message().chat().id());
 
                         Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
@@ -62,6 +61,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
                         switch (messageText) {
                             case "/start" -> {
+                                userService.autoCreateUserGuest(update);
                                 sender.sendMassage(chatId, "Здравствуйте  , " + update.message().chat().firstName() + " , добро пожаловать в телеграм чат приюта домашних животных\n\n" +
                                         "Все пользователи проходят автоматическую регистрацию в базе приюта в роли Гостя");
                                 break;
@@ -81,11 +81,11 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                                 break;
                             }
                             case "/cat_shelter_info" -> {
-                                sender.sendMassage(chatId, CAT_SHELTER_INFO);
+                                sender.sendMassage(chatId, CAT_SHELTER_INFO + "https://fabrikakovki.ru/userfiles/service/Chemodanovka.jpg");
                                 break;
                             }
                             case "/dog_shelter_info" -> {
-                                sender.sendMassage(chatId, DOG_SHELTER_INFO);
+                                sender.sendMassage(chatId, DOG_SHELTER_INFO + "https://avatars.mds.yandex.net/i?id=62e0da82b1aef52b79d63d00453e0525_l-5233787-images-thumbs&n=13");
                                 break;
                             }
                             case "/volunteer_info" -> {

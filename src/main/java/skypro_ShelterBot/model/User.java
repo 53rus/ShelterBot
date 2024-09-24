@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import skypro_ShelterBot.enums.UserType;
+import skypro_ShelterBot.exception.PhoneNumberException;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -72,6 +73,22 @@ public class User {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+
+        if (phoneNumber != null) {
+            phoneNumber = phoneNumber.replace("-", "");
+            phoneNumber = phoneNumber.replace(" ", "");
+            phoneNumber = phoneNumber.replace("+", "");
+
+            if (phoneNumber.length() == 10) {
+                this.phoneNumber = '7' + phoneNumber;
+            } else if (phoneNumber.length() > 11) {
+                throw new PhoneNumberException("Телефон слишком длинный");
+            } else if (phoneNumber.length() < 10) {
+                throw new PhoneNumberException("Телефон слишком короткий");
+            } else if (phoneNumber.length() == 11 && phoneNumber.charAt(0) != '7') {
+                throw new PhoneNumberException("Номер телефона не соответствует коду страны");
+            }
+        }
     }
 
     public String getAddress() {

@@ -27,7 +27,6 @@ public class AnimalService {
     private final AnimalRepository animalRepository;
     private final UserRepository userRepository;
     private final Sender sender;
-
     Logger logger = LoggerFactory.getLogger(Animal.class);
 
     public AnimalService(AnimalRepository animalRepository, UserRepository userRepository, Sender sender) {
@@ -150,6 +149,7 @@ public class AnimalService {
 
     /**
      * Вывести доступных питомцев в телеграм по кошачьему приюту
+     *
      * @param update
      */
 
@@ -170,8 +170,10 @@ public class AnimalService {
             });
         }
     }
+
     /**
      * Вывести доступных питомцев в телеграм по собачьему приюту
+     *
      * @param update
      */
 
@@ -193,14 +195,16 @@ public class AnimalService {
             });
         }
     }
+
     /**
      * Вывести в телеграм питомцев клиента на испытательном сроке
+     *
      * @param update
      */
     public void showMyPets(Update update) {
         List<Animal> animals = animalRepository.findAllByUserChatId(update.message().chat().id())
                 .stream()
-                .filter(animal -> animal.getProbation()!=null)
+                .filter(animal -> animal.getProbation() != null)
                 .toList();
 
         if (animals.isEmpty()) {
@@ -218,5 +222,20 @@ public class AnimalService {
                     }
             );
         }
+    }
+
+    /**
+     * Изменить срок опекунства
+     * @param id
+     * @param probation
+     * @return
+     */
+    public Animal changeAnimalProbationPeriod(Long id, Integer probation) {
+        Animal animal = findById(id);
+        if (animal != null) {
+            animal.setProbation(probation);
+            return animalRepository.save(animal);
+        }
+        throw new AnimalNotFoundException();
     }
 }

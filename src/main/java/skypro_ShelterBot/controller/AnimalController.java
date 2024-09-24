@@ -2,7 +2,6 @@ package skypro_ShelterBot.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.extensions.Extension;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,7 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import skypro_ShelterBot.exception.AnimalAlreadyHasOwnerException;
 import skypro_ShelterBot.model.Animal;
 import skypro_ShelterBot.model.AnimalPhoto;
 import skypro_ShelterBot.model.User;
@@ -172,7 +170,7 @@ public class AnimalController {
             tags = "Питомцы"
     )
 
-    @PutMapping(path = "/animal/add-adopter")
+    @PostMapping(path = "/animal/add-adopter")
     public ResponseEntity<Animal> assignAPetToAnAdopter(@Parameter(description = "ChatId усыновителя")
                                                         @RequestParam Long chatId,
                                                         @Parameter(description = "ID питомца")
@@ -261,5 +259,24 @@ public class AnimalController {
             response.setContentLength((int) photo.getFileSize());
             is.transferTo(os);
         }
+    }
+
+    @Operation(
+            summary = "Изменить срок опекунства питомцу",
+            description = "Установите новый срок опекунства для питомца",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    extensions = {@Extension(
+                            properties = {})}
+            ),
+            tags = "Питомцы"
+    )
+    @PutMapping("/{id},{probation}")
+    public ResponseEntity<Animal> changeAnimalProbationPeriod(@Parameter (description = "ID питомца")@PathVariable Long id,
+                                                              @Parameter(description = "Новый срок опекунства в днях") @PathVariable Integer probation) {
+        Animal animal = animalService.changeAnimalProbationPeriod(id, probation);
+        if (animal == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+            return ResponseEntity.ok(animal);
     }
 }

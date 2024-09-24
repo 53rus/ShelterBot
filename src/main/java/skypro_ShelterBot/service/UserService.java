@@ -1,16 +1,13 @@
 package skypro_ShelterBot.service;
 
-import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import skypro_ShelterBot.exception.ReportsNotFoundException;
 import skypro_ShelterBot.exception.UserNotFoundException;
 import skypro_ShelterBot.exception.UserWithThisChatIdAlreadyExistException;
-import skypro_ShelterBot.listener.TelegramBotUpdatesListener;
 import skypro_ShelterBot.model.Animal;
 import skypro_ShelterBot.model.PetReport;
 import skypro_ShelterBot.model.User;
@@ -19,11 +16,7 @@ import skypro_ShelterBot.repository.PetReportRepository;
 import skypro_ShelterBot.repository.UserRepository;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -58,10 +51,11 @@ public class UserService {
      * @throws UserWithThisChatIdAlreadyExistException, выбрасывается когда пользователь с таким chatId уже существует в БД
      */
     public User addUser(User user) {
-        Optional<User> saveUser = userRepository.findByChatId(user.getChatId());
-        if (saveUser.isPresent()) {
+        if (userRepository.findByChatId(user.getChatId()).isPresent()) {
+            logger.info("Пользователь chatId {} уже существует", + user.getChatId());
             throw new UserWithThisChatIdAlreadyExistException();
         }
+
         user.setUserType(REGISTERED);
         return userRepository.save(user);
     }
@@ -203,34 +197,6 @@ public class UserService {
             });
         }
 
-//        if (reports.isEmpty()) {
-//            if (user.getUserType() == ADOPTER && !animals.isEmpty()) {
-//                animals.forEach(animal -> {
-//                    if (animal.getId() == animalId && animal.getProbation() == null) {
-//                        sender.sendMassage(chatId, "У питомца уже закончился испытательный срок");
-//                    } else if (animal.getId() == animalId && animal.getProbation() != null) {
-//                        petReport.setMessageText(text);
-//                        petReport.setChatId(chatId);
-//                        petReport.setAnimal(animal);
-//                        petReportRepository.save(petReport);
-//                        logger.info("Отчет сохранен");
-//
-//                        animal.setProbation(animal.getProbation() - 1);
-//                        animalRepository.save(animal);
-//                        if (animal.getProbation() == 0) {
-//                            animal.setProbation(null);
-//                            logger.info("Срок опекунства закончился {}", animal.getProbation());
-//                            sender.sendMassage(chatId, "Поздравляем, испытательный срок в роли усыновителя для питомца " + animal.getNamePet() + " закончился");
-//                            animalRepository.save(animal);
-//                        }
-//                        logger.info("Срок опекунства изменен {}", animal.getProbation());
-//                        sender.sendMassage(chatId, "Отчет доставлен");
-//                    }
-//                });
-//            } else {
-//                sender.sendMassage(chatId, "У Вас нет питомцев для отчетности");
-//            }
-//        } else sender.sendMassage(chatId, "Отчет по данному питомцу сегодня уже отправлялся");
     }
 
     /**
@@ -246,5 +212,15 @@ public class UserService {
             throw new ReportsNotFoundException();
         }
         return reports;
+    }
+
+    /**
+     * Метотод отправки сообщений в тг из браузера
+     *
+     * @param chatId
+     * @param message
+     */
+    public void sendMessageToUser(Long chatId, String message) {
+        sender.sendMassage(chatId, message);
     }
 }

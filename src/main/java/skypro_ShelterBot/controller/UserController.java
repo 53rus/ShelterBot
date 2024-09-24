@@ -1,6 +1,7 @@
 package skypro_ShelterBot.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -44,10 +45,7 @@ public class UserController {
     )
     @PostMapping
     public ResponseEntity<User> addUser(@RequestBody User user) {
-       User saveUser = userService.addUser(user);
-        if (saveUser == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+        userService.addUser(user);
         return ResponseEntity.ok(user);
     }
 
@@ -174,9 +172,21 @@ public class UserController {
             },
             tags = "Отчеты"
     )
+
     @GetMapping("/report/{chatId}")
     public ResponseEntity<Collection<PetReport>>findAllReportsByUserChatId(@PathVariable Long chatId) {
         List<PetReport> reports = userService.findAllReportsByUserChatId(chatId);
         return ResponseEntity.ok(reports);
+    }
+
+    @Operation(
+            summary = "Обратная связь с клиентом",
+
+            tags = "Сообщение"
+    )
+    @PostMapping ("/send-message/ ")
+    public void sendMessageToUser(@Parameter (description = "ChatID пользователя") @RequestParam Long chatId,
+                                  @Parameter (description = "Сообщение для отправки")@RequestParam String message) {
+        userService.sendMessageToUser(chatId, message);
     }
 }
